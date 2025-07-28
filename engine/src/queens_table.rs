@@ -1,5 +1,5 @@
-use std::iter::zip;
 use std::cmp::Ordering;
+use std::iter::zip;
 
 use crate::piles::Piles;
 

@@ -1,8 +1,9 @@
 use std::iter::zip;
 
+use crate::courtier_card::CourtierCard;
 use crate::courtier_card::CourtierFamily::{Carp, Hare, Moth, Nightingale, Stag, Toad};
 use crate::courtier_card::CourtierRole::{Assassin, Guard, Noble, Spy};
-use crate::courtier_card::CourtierCard;
+use crate::courtier_card::Error::{self, TryToKillGuardError};
 
 pub struct PilesScores {
     moths: u8,
@@ -60,6 +61,58 @@ impl Piles {
                 Stag => self.stags.push(card),
                 Carp => self.carps.push(card),
             }
+        }
+    }
+
+    pub fn remove(&mut self, card: CourtierCard) -> Result<(), Error> {
+        if card.role == Guard {
+            Err(TryToKillGuardError(String::from(
+                "Guards cannot be killed.",
+            )))
+        } else if card.role == Spy {
+            todo!();
+            // has to deal with a specific card (@ specific index in the pile)
+            Ok(())
+        } else {
+            match card.family {
+                Moth => self.moths.remove(
+                    self.moths
+                        .iter()
+                        .position(|pile_card| pile_card.role == card.role)
+                        .unwrap(),
+                ),
+                Toad => self.toads.remove(
+                    self.toads
+                        .iter()
+                        .position(|pile_card| pile_card.role == card.role)
+                        .unwrap(),
+                ),
+                Nightingale => self.nightingales.remove(
+                    self.nightingales
+                        .iter()
+                        .position(|pile_card| pile_card.role == card.role)
+                        .unwrap(),
+                ),
+                Hare => self.hares.remove(
+                    self.hares
+                        .iter()
+                        .position(|pile_card| pile_card.role == card.role)
+                        .unwrap(),
+                ),
+                Stag => self.stags.remove(
+                    self.moths
+                        .iter()
+                        .position(|pile_card| pile_card.role == card.role)
+                        .unwrap(),
+                ),
+                Carp => self.carps.remove(
+                    self.carps
+                        .iter()
+                        .position(|pile_card| pile_card.role == card.role)
+                        .unwrap(),
+                ),
+            };
+            Ok(())
         }
     }
 

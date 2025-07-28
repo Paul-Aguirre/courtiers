@@ -22,3 +22,7 @@ pub struct CourtierCard {
     pub family: CourtierFamily,
     pub role: CourtierRole,
 }
+
+pub enum Error {
+    TryToKillGuardError(String),
+}
