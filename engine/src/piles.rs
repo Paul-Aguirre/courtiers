@@ -1,0 +1,106 @@
+use std::iter::zip;
+
+use crate::courtier_card::CourtierFamily::{Carp, Hare, Moth, Nightingale, Stag, Toad};
+use crate::courtier_card::CourtierRole::{Assassin, Guard, Noble, Spy};
+use crate::courtier_card::CourtierCard;
+
+pub struct PilesScores {
+    moths: u8,
+    toads: u8,
+    nightingales: u8,
+    hares: u8,
+    stags: u8,
+    carps: u8,
+}
+
+impl PilesScores {
+    fn from_array(a: [u8; 6]) -> Self {
+        PilesScores {
+            moths: a[0],
+            toads: a[1],
+            nightingales: a[2],
+            hares: a[3],
+            stags: a[4],
+            carps: a[5],
+        }
+    }
+
+    pub fn as_array(&self) -> [u8; 6] {
+        [
+            self.moths,
+            self.toads,
+            self.nightingales,
+            self.hares,
+            self.stags,
+            self.carps,
+        ]
+    }
+}
+
+pub struct Piles {
+    pub moths: Vec<CourtierCard>,
+    pub toads: Vec<CourtierCard>,
+    pub nightingales: Vec<CourtierCard>,
+    pub hares: Vec<CourtierCard>,
+    pub stags: Vec<CourtierCard>,
+    pub carps: Vec<CourtierCard>,
+    pub spies: Vec<CourtierCard>,
+}
+
+impl Piles {
+    pub fn add(&mut self, card: CourtierCard) {
+        if card.role == Spy {
+            self.spies.push(card);
+        } else {
+            match card.family {
+                Moth => self.moths.push(card),
+                Toad => self.toads.push(card),
+                Nightingale => self.nightingales.push(card),
+                Hare => self.hares.push(card),
+                Stag => self.stags.push(card),
+                Carp => self.carps.push(card),
+            }
+        }
+    }
+
+    pub fn unpack_spies(&mut self) {
+        for _ in 0..self.spies.len() {
+            let spy = self.spies.pop().unwrap();
+            match spy.family {
+                Moth => self.moths.push(spy),
+                Toad => self.toads.push(spy),
+                Nightingale => self.nightingales.push(spy),
+                Hare => self.hares.push(spy),
+                Stag => self.stags.push(spy),
+                Carp => self.carps.push(spy),
+            }
+        }
+    }
+
+    fn as_array_no_spies(&self) -> [&Vec<CourtierCard>; 6] {
+        [
+            &self.moths,
+            &self.toads,
+            &self.nightingales,
+            &self.hares,
+            &self.stags,
+            &self.carps,
+        ]
+    }
+
+    pub fn tally(&self) -> PilesScores {
+        let mut scores: [u8; 6] = [0; 6];
+        let piles = self.as_array_no_spies();
+
+        for (cards, mut score) in zip(piles, scores) {
+            for card in cards {
+                match card.role {
+                    Noble => score += 2,
+                    _ => score += 1,
+                }
+            }
+        }
+
+        PilesScores::from_array(scores)
+    }
+}
