@@ -13,17 +13,16 @@ use mission_card::MissionCard;
 mod player;
 use player::Player;
 
-fn build_deck(players_number: u8) -> Vec<CourtierCard> {
-    todo!()
-    // contains logic of what cards can be present
-    // shuffles the deck
-    // takes out some cards according to the number of players
-}
-
 struct Game {
     deck: Vec<CourtierCard>,
     players: Vec<Player>,
     queens_table: QueensTable,
+}
+
+impl Game {
+    fn init_game(players_number: u8) -> Game {
+        todo!()
+    }
 }
 
 #[cfg(test)]

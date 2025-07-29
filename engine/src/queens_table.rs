@@ -7,7 +7,7 @@ const IN_THE_LIGHT: i8 = 1;
 const NEUTRAL: i8 = 0;
 const DISGRACED: i8 = -1;
 
-struct FamiliesStatues {
+pub struct FamiliesStatues {
     moths: i8,
     toads: i8,
     nightingales: i8,
@@ -28,7 +28,7 @@ impl FamiliesStatues {
         }
     }
 
-    fn as_array(&self) -> [i8; 6] {
+    pub fn as_array(&self) -> [i8; 6] {
         [
             self.moths,
             self.toads,
