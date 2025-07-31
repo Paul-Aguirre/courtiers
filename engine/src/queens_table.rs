@@ -1,13 +1,16 @@
 use std::cmp::Ordering;
 use std::iter::zip;
 
-use crate::piles::Piles;
+use crate::piles::{Piles, GetFamily};
+use crate::courtier_card::CourtierFamily;
+use crate::courtier_card::CourtierFamily::{Carp, Hare, Moth, Nightingale, Stag, Toad};
+
 
 const IN_THE_LIGHT: i8 = 1;
 const NEUTRAL: i8 = 0;
 const DISGRACED: i8 = -1;
 
-pub struct FamiliesStatues {
+pub struct FamiliesStatuses {
     moths: i8,
     toads: i8,
     nightingales: i8,
@@ -16,9 +19,9 @@ pub struct FamiliesStatues {
     carps: i8,
 }
 
-impl FamiliesStatues {
+impl FamiliesStatuses {
     fn from_array(a: [i8; 6]) -> Self {
-        FamiliesStatues {
+        FamiliesStatuses {
             moths: a[0],
             toads: a[1],
             nightingales: a[2],
@@ -40,13 +43,15 @@ impl FamiliesStatues {
     }
 }
 
+impl_get_family!(FamiliesStatuses, i8);
+
 pub struct QueensTable {
     in_the_light: Piles,
     disgraced: Piles,
 }
 
 impl QueensTable {
-    pub fn determine_family_statuses(&self) -> FamiliesStatues {
+    pub fn determine_family_statuses(&self) -> FamiliesStatuses {
         let mut statuses_array: [i8; 6] = [0; 6];
         for (i, (in_the_light_score, disgraced_score)) in zip(
             self.in_the_light.tally().as_array(),
@@ -60,6 +65,6 @@ impl QueensTable {
                 Ordering::Less => DISGRACED,
             };
         }
-        FamiliesStatues::from_array(statuses_array)
+        FamiliesStatuses::from_array(statuses_array)
     }
 }

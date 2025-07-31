@@ -1,9 +1,32 @@
 use std::iter::zip;
 
-use crate::courtier_card::CourtierCard;
 use crate::courtier_card::CourtierFamily::{Carp, Hare, Moth, Nightingale, Stag, Toad};
 use crate::courtier_card::CourtierRole::{Assassin, Guard, Noble, Spy};
 use crate::courtier_card::Error::{self, TryToKillGuardError};
+use crate::courtier_card::{CourtierCard, CourtierFamily};
+
+type Pile = Vec<CourtierCard>;
+
+macro_rules! impl_get_family {
+    ($ty:ty, $field_ty:ty) => {
+        impl GetFamily<$field_ty> for $ty {
+            fn get_family(&self, family: &CourtierFamily) -> &$field_ty {
+                match family {
+                    Moth => &self.moths,
+                    Toad => &self.toads,
+                    Nightingale => &self.nightingales,
+                    Hare => &self.hares,
+                    Stag => &self.stags,
+                    Carp => &self.carps,
+                }
+            }
+        }
+    };
+}
+
+pub trait GetFamily<T> {
+    fn get_family(&self, family: &CourtierFamily) -> &T;
+}
 
 pub struct PilesScores {
     moths: u8,
@@ -38,14 +61,16 @@ impl PilesScores {
     }
 }
 
+impl_get_family!(PilesScores, u8);
+
 pub struct Piles {
-    pub moths: Vec<CourtierCard>,
-    pub toads: Vec<CourtierCard>,
-    pub nightingales: Vec<CourtierCard>,
-    pub hares: Vec<CourtierCard>,
-    pub stags: Vec<CourtierCard>,
-    pub carps: Vec<CourtierCard>,
-    pub spies: Vec<CourtierCard>,
+    pub moths: Pile,
+    pub toads: Pile,
+    pub nightingales: Pile,
+    pub hares: Pile,
+    pub stags: Pile,
+    pub carps: Pile,
+    pub spies: Pile,
 }
 
 impl Piles {
@@ -130,7 +155,8 @@ impl Piles {
         }
     }
 
-    fn as_array_no_spies(&self) -> [&Vec<CourtierCard>; 6] {
+    pub fn as_array(&self) -> [&Vec<CourtierCard>; 6] {
+        // does not return the spies attribute
         [
             &self.moths,
             &self.toads,
@@ -143,7 +169,7 @@ impl Piles {
 
     pub fn tally(&self) -> PilesScores {
         let mut scores: [u8; 6] = [0; 6];
-        let piles = self.as_array_no_spies();
+        let piles = self.as_array();
 
         for (cards, mut score) in zip(piles, scores) {
             for card in cards {
@@ -157,3 +183,5 @@ impl Piles {
         PilesScores::from_array(scores)
     }
 }
+
+impl_get_family!(Piles, Pile);

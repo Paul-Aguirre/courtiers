@@ -1,6 +1,7 @@
 mod courtier_card;
 use courtier_card::CourtierCard;
 
+#[macro_use]
 mod piles;
 use piles::Piles;
 
