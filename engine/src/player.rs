@@ -3,13 +3,13 @@ use std::iter::zip;
 use crate::CourtierCard;
 use crate::MissionCard;
 use crate::Piles;
-use crate::queens_table::FamiliesStatues;
+use crate::queens_table::FamiliesStatuses;
 
 pub struct Player {
-    player_name: String,
-    hand: Vec<CourtierCard>,
-    domain: Piles,
-    mission_cards: (MissionCard, MissionCard),
+    pub player_name: String,
+    pub hand: Vec<CourtierCard>,
+    pub domain: Piles,
+    pub mission_cards: (MissionCard, MissionCard),
 }
 
 impl Player {
@@ -23,7 +23,7 @@ impl Player {
         todo!()
     }
 
-    pub fn compute_score(&self, statuses: FamiliesStatues) -> i8 {
+    pub fn compute_score(&self, statuses: FamiliesStatuses) -> i8 {
         zip(self.domain.tally().as_array(), statuses.as_array())
             .map(|(domain_family, family_status)| domain_family as i8 * family_status)
             .sum()
