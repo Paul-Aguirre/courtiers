@@ -74,6 +74,17 @@ pub struct Piles {
 }
 
 impl Piles {
+    pub fn new() -> Piles {
+        Piles {
+            moths: Vec::new(),
+            toads: Vec::new(),
+            nightingales: Vec::new(),
+            hares: Vec::new(),
+            stags: Vec::new(),
+            carps: Vec::new(),
+            spies: Vec::new(),
+        }
+    }
     pub fn add(&mut self, card: CourtierCard) {
         if card.role == Spy {
             self.spies.push(card);
