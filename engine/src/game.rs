@@ -4,7 +4,7 @@ pub struct Game {
     deck: Vec<CourtierCard>,
     players: Vec<Player>,
     queens_table: QueensTable,
-    pub current_player_number: u8,
+    current_player_index: u8,
 }
 
 impl Game {
@@ -12,17 +12,30 @@ impl Game {
         let deck = build_deck(player_names.len() as u8)?;
         let players = Player::init_players(player_names);
         let queens_table = QueensTable::new();
-        Ok(Game { deck, players, queens_table, current_player_number: 0 })
+        Ok(Game { deck, players, queens_table, current_player_index: 0 })
     }
 
     fn next_player(&mut self) {
-        self.current_player_number = (0..self.players.len())
+        // TODO test this one !!!!!!!!!!!!
+        self.current_player_index = (0..self.players.len())
             .into_iter()
             .cycle()
             .next()
             .unwrap()
             .try_into()
             .unwrap();
+    }
+
+    pub fn get_current_player(&self) -> &Player {
+        &self.players[self.current_player_index as usize]
+    }
+
+    pub fn get_next_player(&self) -> &Player {
+        if self.current_player_index == self.players.len() as u8 - 1 {
+            &self.players[0]
+        } else {
+            &self.players[self.current_player_index as usize + 1]
+        }
     }
 }
 
@@ -38,3 +51,13 @@ impl Game {
 
 //     }
 // }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn next_player_increments_current_player_index() {
+        todo!()
+    }
+}
