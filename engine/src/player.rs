@@ -9,10 +9,18 @@ pub struct Player {
     pub player_name: String,
     pub hand: Vec<CourtierCard>,
     pub domain: Piles,
-    pub mission_cards: (MissionCard, MissionCard),
+    pub mission_cards: Option<(MissionCard, MissionCard)>,
 }
 
 impl Player {
+    pub fn init_players(player_names: Vec<String>) -> Vec<Player> {
+        let mut players: Vec<Player> = Vec::new();
+        for player_name in player_names {
+            players.push(Player {player_name: player_name, hand: Vec::new(), domain: Piles::new(), mission_cards: None });
+        }
+        players
+    }
+
     pub fn draw_hand(&mut self, deck: &mut Vec<CourtierCard>) {
         for _ in 0..=3 {
             self.hand.push(deck.pop().unwrap());
