@@ -1,22 +1,30 @@
 use std::iter::zip;
 
+use crate::piles::PilesScores;
+use crate::queens_table::FamiliesStatuses;
 use crate::CourtierCard;
 use crate::MissionCard;
 use crate::Piles;
-use crate::queens_table::FamiliesStatuses;
 
 pub struct Player {
     pub player_name: String,
     pub hand: Vec<CourtierCard>,
     pub domain: Piles,
     pub mission_cards: Option<(MissionCard, MissionCard)>,
+    pub domain_scores: Option<PilesScores>,
 }
 
 impl Player {
     pub fn init_players(player_names: Vec<String>) -> Vec<Player> {
         let mut players: Vec<Player> = Vec::new();
         for player_name in player_names {
-            players.push(Player {player_name: player_name, hand: Vec::new(), domain: Piles::new(), mission_cards: None });
+            players.push(Player {
+                player_name: player_name,
+                hand: Vec::new(),
+                domain: Piles::new(),
+                mission_cards: None,
+                domain_scores: None,
+            });
         }
         players
     }
