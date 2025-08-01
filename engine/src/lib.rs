@@ -14,17 +14,7 @@ use mission_card::MissionCard;
 mod player;
 use player::Player;
 
-struct Game {
-    deck: Vec<CourtierCard>,
-    players: Vec<Player>,
-    queens_table: QueensTable,
-}
-
-impl Game {
-    fn init_game(players_number: u8) -> Game {
-        todo!()
-    }
-}
+mod game;
 
 #[cfg(test)]
 mod tests {}

@@ -70,7 +70,7 @@ fn build_family(family: CourtierFamily) -> Vec<CourtierCard> {
     family_deck
 }
 
-pub fn build_deck(player_number: u8) -> Result<Vec<CourtierCard>, Error> {
+pub fn build_deck(players_number: u8) -> Result<Vec<CourtierCard>, Error> {
     let mut rng = rand::rng();
     let mut deck: Vec<CourtierCard> = Vec::new();
 
@@ -83,11 +83,11 @@ pub fn build_deck(player_number: u8) -> Result<Vec<CourtierCard>, Error> {
 
     deck.shuffle(&mut rng);
 
-    match player_number {
+    match players_number {
         2 => Ok(deck.drain(..TWO_PLAYERS_REMOVED_CARDS).collect()),
         3 => Ok(deck.drain(..THREE_PLAYERS_REMOVED_CARDS).collect()),
         4 => Ok(deck.drain(..FOUR_PLAYERS_REMOVED_CARDS).collect()),
         5 => Ok(deck),
-        _ => Err(Error::PlayerNumbreError { player_number }),
+        _ => Err(Error::PlayerNumbreError { player_number: players_number }),
     }
 }
