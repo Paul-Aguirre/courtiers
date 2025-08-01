@@ -76,6 +76,10 @@ pub struct QueensTable {
 }
 
 impl QueensTable {
+    pub fn new() -> QueensTable{
+        QueensTable { in_the_light: Piles::new(), disgraced: Piles::new() }
+    }
+    
     pub fn determine_family_statuses(&self) -> FamiliesStatuses {
         let mut statuses_array: [i8; 6] = [0; 6];
         for (i, (in_the_light_score, disgraced_score)) in zip(
