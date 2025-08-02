@@ -136,7 +136,7 @@ mod tests {
     fn test_display_for_courtier_family() {
         assert_eq!(format!("{}", CourtierFamily::Moth), "Moth")
     }
-    
+
     #[test]
     fn test_display_for_courtier_role() {
         assert_eq!(format!("{}", CourtierRole::Assassin), "Assassin")
