@@ -1,10 +1,10 @@
 use std::iter::zip;
 
-use crate::piles::PilesScores;
-use crate::queens_table::FamiliesStatuses;
 use crate::CourtierCard;
 use crate::MissionCard;
 use crate::Piles;
+use crate::piles::PilesScores;
+use crate::queens_table::FamiliesStatuses;
 
 pub struct Player {
     pub player_name: String,

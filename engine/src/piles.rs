@@ -28,6 +28,7 @@ pub trait GetFamily<T> {
     fn get_family(&self, family: &CourtierFamily) -> &T;
 }
 
+#[derive(Clone)]
 pub struct PilesScores {
     moths: u8,
     toads: u8,

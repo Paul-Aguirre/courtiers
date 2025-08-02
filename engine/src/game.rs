@@ -1,4 +1,8 @@
-use crate::{courtier_card::{build_deck, CourtierCard}, player::Player, queens_table::{self, QueensTable}};
+use crate::{
+    courtier_card::{CourtierCard, build_deck},
+    player::Player,
+    queens_table::{self, QueensTable},
+};
 
 pub struct Game {
     deck: Vec<CourtierCard>,
@@ -12,7 +16,12 @@ impl Game {
         let deck = build_deck(player_names.len() as u8)?;
         let players = Player::init_players(player_names);
         let queens_table = QueensTable::new();
-        Ok(Game { deck, players, queens_table, current_player_index: 0 })
+        Ok(Game {
+            deck,
+            players,
+            queens_table,
+            current_player_index: 0,
+        })
     }
 
     fn next_player(&mut self) {
