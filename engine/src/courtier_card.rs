@@ -1,3 +1,5 @@
+use std::fmt;
+
 use rand::rng;
 use rand::seq::SliceRandom;
 
@@ -5,7 +7,7 @@ const TWO_PLAYERS_REMOVED_CARDS: usize = 30;
 const THREE_PLAYERS_REMOVED_CARDS: usize = 18;
 const FOUR_PLAYERS_REMOVED_CARDS: usize = 6;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum CourtierFamily {
     Moth,
     Toad,
@@ -15,13 +17,45 @@ pub enum CourtierFamily {
     Carp,
 }
 
-#[derive(Clone, PartialEq)]
+impl CourtierFamily {
+    pub fn families_iter() -> std::slice::Iter<'static, CourtierFamily> {
+        [
+            Self::Moth,
+            Self::Toad,
+            Self::Nightingale,
+            Self::Hare,
+            Self::Stag,
+            Self::Carp,
+        ]
+        .iter()
+    }
+}
+
+impl fmt::Display for CourtierFamily {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+#[derive(Clone, PartialEq, Debug)]
 pub enum CourtierRole {
     NoRole,   // 4 per family
     Noble,    // 4 per family
     Spy,      // 2 per family
     Assassin, // 2 per family
     Guard,    // 3 per family
+}
+
+impl fmt::Display for CourtierRole {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+impl CourtierRole {
+    pub fn special_roles_iter() -> std::slice::Iter<'static, CourtierRole> {
+        [Self::Noble, Self::Spy, Self::Assassin, Self::Guard].iter()
+    }
 }
 
 #[derive(Clone)]
@@ -88,6 +122,23 @@ pub fn build_deck(players_number: u8) -> Result<Vec<CourtierCard>, Error> {
         3 => Ok(deck.drain(..THREE_PLAYERS_REMOVED_CARDS).collect()),
         4 => Ok(deck.drain(..FOUR_PLAYERS_REMOVED_CARDS).collect()),
         5 => Ok(deck),
-        _ => Err(Error::PlayerNumbreError { player_number: players_number }),
+        _ => Err(Error::PlayerNumbreError {
+            player_number: players_number,
+        }),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_display_for_courtier_family() {
+        assert_eq!(format!("{}", CourtierFamily::Moth), "Moth")
+    }
+    
+    #[test]
+    fn test_display_for_courtier_role() {
+        assert_eq!(format!("{}", CourtierRole::Assassin), "Assassin")
     }
 }
