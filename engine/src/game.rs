@@ -46,6 +46,10 @@ impl Game {
             &self.players[self.current_player_index as usize + 1]
         }
     }
+
+    pub fn get_queens_table(&self) -> &QueensTable {
+        &self.queens_table
+    }
 }
 
 // let mut player_number = (0..4).iter().cycle()
