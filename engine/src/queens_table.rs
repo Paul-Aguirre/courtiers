@@ -73,6 +73,7 @@ impl_get_family!(FamiliesStatuses, FamilyStatus);
 pub struct QueensTable {
     in_the_light: Piles,
     disgraced: Piles,
+    statuses: Option<FamiliesStatuses>,
 }
 
 impl QueensTable {
@@ -80,7 +81,20 @@ impl QueensTable {
         QueensTable {
             in_the_light: Piles::new(),
             disgraced: Piles::new(),
+            statuses: None,
         }
+    }
+
+    pub fn get_in_the_light(&self) -> &Piles {
+        &self.in_the_light
+    }
+
+    pub fn get_disgraced(&self) -> &Piles {
+        &self.disgraced
+    }
+
+    pub fn get_statuses(&self) -> &Option<FamiliesStatuses> {
+        &self.statuses
     }
 
     pub fn determine_family_statuses(&self) -> FamiliesStatuses {
