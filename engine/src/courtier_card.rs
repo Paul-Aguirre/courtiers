@@ -7,6 +7,12 @@ const TWO_PLAYERS_REMOVED_CARDS: usize = 30;
 const THREE_PLAYERS_REMOVED_CARDS: usize = 18;
 const FOUR_PLAYERS_REMOVED_CARDS: usize = 6;
 
+#[derive(Debug)]
+pub enum Error {
+    TryToKillGuardError(String),
+    PlayerNumbreError { player_number: u8 },
+}
+
 #[derive(Clone, Debug)]
 pub enum CourtierFamily {
     Moth,
@@ -62,11 +68,6 @@ impl CourtierRole {
 pub struct CourtierCard {
     pub family: CourtierFamily,
     pub role: CourtierRole,
-}
-
-pub enum Error {
-    TryToKillGuardError(String),
-    PlayerNumbreError { player_number: u8 },
 }
 
 fn build_family(family: CourtierFamily) -> Vec<CourtierCard> {
