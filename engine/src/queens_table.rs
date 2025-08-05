@@ -97,7 +97,7 @@ impl QueensTable {
         &self.statuses
     }
 
-    pub fn determine_family_statuses(&self) -> FamiliesStatuses {
+    pub fn determine_family_statuses(&mut self) {
         let mut statuses_array: [i8; 6] = [0; 6];
         for (i, (in_the_light_score, disgraced_score)) in zip(
             self.in_the_light.tally().as_array(),
@@ -111,6 +111,6 @@ impl QueensTable {
                 Ordering::Less => FamilyStatus::Disgraced.value(),
             };
         }
-        FamiliesStatuses::from_array(statuses_array).unwrap()
+        self.statuses = Some(FamiliesStatuses::from_array(statuses_array).unwrap());
     }
 }
