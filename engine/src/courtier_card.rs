@@ -1,19 +1,21 @@
 use std::fmt;
 
-use rand::rng;
+use thiserror::Error;
 use rand::seq::SliceRandom;
 
 const TWO_PLAYERS_REMOVED_CARDS: usize = 30;
 const THREE_PLAYERS_REMOVED_CARDS: usize = 18;
 const FOUR_PLAYERS_REMOVED_CARDS: usize = 6;
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum Error {
-    TryToKillGuardError(String),
-    PlayerNumbreError { player_number: u8 },
+    #[error("Guards cannot be killed.")]
+    TryToKillGuard,
+    #[error("This game accepts from 2 to 5 players only. Got: {number_of_players:?}")]
+    WrongNumberOfPlayers { number_of_players: u8 },
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum CourtierFamily {
     Moth,
     Toad,
@@ -24,7 +26,7 @@ pub enum CourtierFamily {
 }
 
 impl CourtierFamily {
-    pub fn families_iter() -> std::slice::Iter<'static, CourtierFamily> {
+    pub fn families_iter() -> impl Iterator<Item = CourtierFamily> {
         [
             Self::Moth,
             Self::Toad,
@@ -33,17 +35,18 @@ impl CourtierFamily {
             Self::Stag,
             Self::Carp,
         ]
-        .iter()
+        .into_iter()
     }
 }
 
+// TODO delete that impl Display
 impl fmt::Display for CourtierFamily {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
     }
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum CourtierRole {
     NoRole,   // 4 per family
     Noble,    // 4 per family
@@ -59,6 +62,7 @@ impl fmt::Display for CourtierRole {
 }
 
 impl CourtierRole {
+    // TODO impl Iterator<Item = CourtierRole>
     pub fn special_roles_iter() -> std::slice::Iter<'static, CourtierRole> {
         [Self::Noble, Self::Spy, Self::Assassin, Self::Guard].iter()
     }
@@ -123,8 +127,8 @@ pub fn build_deck(players_number: u8) -> Result<Vec<CourtierCard>, Error> {
         3 => Ok(deck.drain(..THREE_PLAYERS_REMOVED_CARDS).collect()),
         4 => Ok(deck.drain(..FOUR_PLAYERS_REMOVED_CARDS).collect()),
         5 => Ok(deck),
-        _ => Err(Error::PlayerNumbreError {
-            player_number: players_number,
+        _ => Err(Error::WrongNumberOfPlayers {
+            number_of_players: players_number,
         }),
     }
 }
