@@ -1,7 +1,7 @@
 use std::fmt;
 
-use thiserror::Error;
 use rand::seq::SliceRandom;
+use thiserror::Error;
 
 const TWO_PLAYERS_REMOVED_CARDS: usize = 30;
 const THREE_PLAYERS_REMOVED_CARDS: usize = 18;

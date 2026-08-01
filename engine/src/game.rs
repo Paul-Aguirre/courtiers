@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, iter::Cycle, ops::Range, rc::Rc};
 
 use crate::{
     courtier_card::{self, CourtierCard},
@@ -11,7 +11,7 @@ pub struct Game {
     players: Vec<Player>,
     queens_table: QueensTable,
     current_player_index: u8,
-    player_cycle_iter: Box<dyn Iterator<Item = usize>>,
+    player_cycle_iter: Box<Cycle<Range<usize>>>,
 }
 
 impl Game {

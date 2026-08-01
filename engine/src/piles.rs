@@ -2,15 +2,16 @@ use std::iter::zip;
 
 use crate::courtier_card::CourtierFamily::{Carp, Hare, Moth, Nightingale, Stag, Toad};
 use crate::courtier_card::CourtierRole::{Assassin, Guard, Noble, Spy};
-use crate::courtier_card::Error::{self, TryToKillGuardError};
+use crate::courtier_card::Error::{self, TryToKillGuard};
 use crate::courtier_card::{CourtierCard, CourtierFamily};
 
 type Pile = Vec<CourtierCard>;
+// TODO type Pile<T> = Vec<T>;
 
 macro_rules! impl_get_family {
     ($ty:ty, $field_ty:ty) => {
         impl GetFamily<$field_ty> for $ty {
-            fn get_family(&self, family: &CourtierFamily) -> &$field_ty {
+            fn get_family(&self, family: CourtierFamily) -> &$field_ty {
                 match family {
                     Moth => &self.moths,
                     Toad => &self.toads,
@@ -25,7 +26,7 @@ macro_rules! impl_get_family {
 }
 
 pub trait GetFamily<T> {
-    fn get_family(&self, family: &CourtierFamily) -> &T;
+    fn get_family(&self, family: CourtierFamily) -> &T;
 }
 
 #[derive(Clone)]
@@ -65,6 +66,8 @@ impl PilesScores {
 impl_get_family!(PilesScores, u8);
 
 pub struct Piles {
+    // TODO
+    // families: HashMap<Family, Vec[NonSpyRole]>
     pub moths: Pile,
     pub toads: Pile,
     pub nightingales: Pile,
@@ -91,7 +94,7 @@ impl Piles {
             self.spies.push(card);
         } else {
             match card.family {
-                Moth => self.moths.push(card),
+                Moth => self.moths.push(card), // TODO .push(card.role)
                 Toad => self.toads.push(card),
                 Nightingale => self.nightingales.push(card),
                 Hare => self.hares.push(card),
@@ -102,10 +105,14 @@ impl Piles {
     }
 
     pub fn remove(&mut self, card: CourtierCard) -> Result<(), Error> {
+        // TODO
+        // match card.role {
+        // Guard =>
+        // Spy =>
+        // Assassin | NoRole | Noble =>
+        //}
         if card.role == Guard {
-            Err(TryToKillGuardError(String::from(
-                "Guards cannot be killed.",
-            )))
+            Err(TryToKillGuard)
         } else if card.role == Spy {
             todo!();
             // has to deal with a specific card (@ specific index in the pile)
