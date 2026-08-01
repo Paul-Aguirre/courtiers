@@ -1,5 +1,5 @@
 use std::cmp::Ordering;
-use std::sync::Arc;
+use std::rc::Rc;
 
 use rand::seq::SliceRandom;
 
@@ -22,7 +22,7 @@ enum MissionCardColor {
 pub struct MissionCard {
     color: MissionCardColor,
     text: String,
-    mission_checker: Arc<dyn Fn(&Game) -> bool + Send + Sync>,
+    mission_checker: Rc<dyn Fn(&Game) -> bool>,
 }
 
 // Manual Clone implementation for MissionCard
@@ -31,13 +31,13 @@ impl Clone for MissionCard {
         MissionCard {
             color: self.color.clone(),
             text: self.text.clone(),
-            mission_checker: Arc::clone(&self.mission_checker),
+            mission_checker: Rc::clone(&self.mission_checker),
         }
     }
 }
 
 impl MissionCard {
-    pub fn get_mission_checker(&self) -> &Arc<dyn Fn(&Game) -> bool + Send + Sync> {
+    pub fn get_mission_checker(&self) -> &Rc<dyn Fn(&Game) -> bool> {
         &self.mission_checker
     }
     pub fn build_white_deck() -> Vec<MissionCard> {
@@ -69,7 +69,7 @@ impl MissionCard {
         let count_status_most_card = MissionCard {
             color: MissionCardColor::Blue,
             text: String::from("At most 3 families must be in the light at the court."),
-            mission_checker: Arc::new(|game: &Game| {
+            mission_checker: Rc::new(|game: &Game| {
                 count_status(
                     game.get_queens_table().get_statuses().as_ref().unwrap(),
                     FamilyStatus::Disgraced,
@@ -80,7 +80,7 @@ impl MissionCard {
         let count_status_least_card = MissionCard {
             color: MissionCardColor::Blue,
             text: String::from("At least 2 families must be disgraced at the court."),
-            mission_checker: Arc::new(|game: &Game| {
+            mission_checker: Rc::new(|game: &Game| {
                 count_status(
                     game.get_queens_table().get_statuses().as_ref().unwrap(),
                     FamilyStatus::Disgraced,
@@ -91,7 +91,7 @@ impl MissionCard {
         let count_all_piles_card = MissionCard {
             color: MissionCardColor::Blue,
             text: String::from("At least 1 card of each family must be under the play mat."),
-            mission_checker: Arc::new(|game: &Game| {
+            mission_checker: Rc::new(|game: &Game| {
                 count_all_piles(&game.get_queens_table().get_disgraced().tally(), 1)
             }),
         };
@@ -99,7 +99,7 @@ impl MissionCard {
         let count_any_piles_card = MissionCard {
             color: MissionCardColor::Blue,
             text: String::from("One family must have at least 5 cards under the play mat."),
-            mission_checker: Arc::new(|game: &Game| {
+            mission_checker: Rc::new(|game: &Game| {
                 count_any_piles(&game.get_queens_table().get_disgraced().tally(), 5)
             }),
         };
@@ -123,7 +123,7 @@ impl MissionCard {
 }
 
 mod white_cards {
-    use std::{cmp::Ordering, sync::Arc};
+    use std::{cmp::Ordering, rc::Rc};
 
     use crate::{
         courtier_card::{CourtierFamily, CourtierRole},
@@ -135,18 +135,16 @@ mod white_cards {
     // ################################################################
     // -----------------------cmp neighbor cards-----------------------
     // ################################################################
-    pub fn build_cmp_neighbor_card(family: &'static CourtierFamily) -> MissionCard {
+    pub fn build_cmp_neighbor_card(family: CourtierFamily) -> MissionCard {
         MissionCard {
             color: MissionCardColor::White,
-            text: build_cmp_card_text(family),
+            text: build_cmp_card_text(&family),
             mission_checker: cmp_neighbor_mission_checker(family),
         }
     }
 
-    fn cmp_neighbor_mission_checker(
-        family: &'static CourtierFamily,
-    ) -> Arc<dyn Fn(&Game) -> bool + Send + Sync> {
-        fn inner(game: &Game, family: &'static CourtierFamily) -> bool {
+    fn cmp_neighbor_mission_checker(family: CourtierFamily) -> Rc<dyn Fn(&Game) -> bool> {
+        fn inner(game: &Game, family: CourtierFamily) -> bool {
             cmp_neighbor(
                 game.get_current_player().domain_scores.clone().unwrap(),
                 game.get_next_player().domain_scores.clone().unwrap(),
@@ -155,10 +153,10 @@ mod white_cards {
             .is_ge()
         }
         // Use a wrapper function to match the expected fn(Game) -> bool signature
-        Arc::new(move |game: &Game| inner(game, family))
+        Rc::new(move |game: &Game| inner(game, family))
     }
 
-    fn cmp_neighbor(left: PilesScores, right: PilesScores, family: &CourtierFamily) -> Ordering {
+    fn cmp_neighbor(left: PilesScores, right: PilesScores, family: CourtierFamily) -> Ordering {
         // compares the number of cards in a specified family between two PliesScores instancess
         left.get_family(family).cmp(right.get_family(family))
     }
@@ -204,20 +202,18 @@ mod white_cards {
         .unwrap()
     }
 
-    fn count_roles_mission_checker(
-        role: &'static CourtierRole,
-    ) -> Arc<dyn Fn(&Game) -> bool + Send + Sync> {
+    fn count_roles_mission_checker(role: &'static CourtierRole) -> Rc<dyn Fn(&Game) -> bool> {
         fn inner(game: &Game, role: &'static CourtierRole) -> bool {
             count_role_across_families(&game.get_current_player().domain, role)
                 .cmp(&get_min_for(role))
                 .is_ge()
         }
-        Arc::new(move |game: &Game| inner(game, role))
+        Rc::new(move |game: &Game| inner(game, role))
     }
 }
 
 mod blue_cards {
-    use std::sync::Arc;
+    use std::rc::Rc;
 
     use crate::{
         courtier_card::CourtierFamily,
@@ -230,11 +226,11 @@ mod blue_cards {
     // ################################################################
     // ----------------------check disgraced cards----------------------
     // ################################################################
-    pub fn build_check_disgraced_card(family: &'static CourtierFamily) -> MissionCard {
+    pub fn build_check_disgraced_card(family: CourtierFamily) -> MissionCard {
         MissionCard {
             color: super::MissionCardColor::Blue,
-            text: build_check_disgraced_card_text(family),
-            mission_checker: Arc::new(move |game: &Game| {
+            text: build_check_disgraced_card_text(&family),
+            mission_checker: Rc::new(move |game: &Game| {
                 check_disgraced(
                     game.get_queens_table().get_statuses().as_ref().unwrap(),
                     family,
@@ -243,7 +239,7 @@ mod blue_cards {
         }
     }
 
-    fn check_disgraced(statuses: &FamiliesStatuses, family: &CourtierFamily) -> bool {
+    fn check_disgraced(statuses: &FamiliesStatuses, family: CourtierFamily) -> bool {
         // checks if family is disgraced at the court
         statuses.get_family(family).value() == -1
     }
