@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::iter::zip;
 
 use crate::courtier_card::CourtierFamily::{Carp, Hare, Moth, Nightingale, Stag, Toad};

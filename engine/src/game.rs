@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::{cell::RefCell, iter::Cycle, ops::Range, rc::Rc};
 
 use crate::{
