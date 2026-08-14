@@ -42,8 +42,8 @@ impl Player {
         }
     }
 
-    pub fn play_card(&mut self, card: &CourtierCard, piles: Piles) {
-        todo!()
+    pub fn play_card(&mut self, card: CourtierCard, piles: &mut Piles) {
+        piles.add(card);
     }
 
     pub fn compute_domain_score(&mut self, statuses: &FamiliesStatuses) {

@@ -89,18 +89,23 @@ impl Piles {
             spies: Vec::new(),
         }
     }
+
+    fn add_role_to_family(&mut self, role: CourtierRole, family: CourtierFamily) {
+        match family {
+            Moth => self.moths.push(role),
+            Toad => self.toads.push(role),
+            Nightingale => self.nightingales.push(role),
+            Hare => self.hares.push(role),
+            Stag => self.stags.push(role),
+            Carp => self.carps.push(role),
+        }
+    }
+
     pub fn add(&mut self, card: CourtierCard) {
         if card.role == Spy {
             self.spies.push(card.family);
         } else {
-            match card.family {
-                Moth => self.moths.push(card.role),
-                Toad => self.toads.push(card.role),
-                Nightingale => self.nightingales.push(card.role),
-                Hare => self.hares.push(card.role),
-                Stag => self.stags.push(card.role),
-                Carp => self.carps.push(card.role),
-            }
+            self.add_role_to_family(card.role, card.family);
         }
     }
 
@@ -159,16 +164,6 @@ impl Piles {
             Ok(())
         }
     }
-    fn add_role_to_family(&mut self, role: CourtierRole, family: CourtierFamily) {
-        match family {
-            Moth => self.moths.push(role),
-            Toad => self.toads.push(role),
-            Nightingale => self.nightingales.push(role),
-            Hare => self.hares.push(role),
-            Stag => self.stags.push(role),
-            Carp => self.carps.push(role),
-        }
-    }
 
     pub fn unpack_spies(&mut self) {
         for _ in 0..self.spies.len() {
@@ -190,11 +185,11 @@ impl Piles {
     }
 
     pub fn tally(&self) -> PilesScores {
-        let mut scores: [u8; 6] = [0; 6];
+        let scores: [u8; 6] = [0; 6];
         let piles = self.as_array();
 
-        for (cards, mut score) in zip(piles, scores) {
-            for role in cards {
+        for (roles, mut score) in zip(piles, scores) {
+            for role in roles {
                 match role {
                     Noble => score += 2,
                     _ => score += 1,
