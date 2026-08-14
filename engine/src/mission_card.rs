@@ -169,10 +169,10 @@ mod white_cards {
     // ################################################################
     // ------------------------count role cards------------------------
     // ################################################################
-    pub fn build_count_role_card(role: &'static CourtierRole) -> MissionCard {
+    pub fn build_count_role_card(role: CourtierRole) -> MissionCard {
         MissionCard {
             color: MissionCardColor::White,
-            text: build_count_role_card_text(role, get_min_for(role)),
+            text: build_count_role_card_text(&role, get_min_for(&role)),
             mission_checker: count_roles_mission_checker(role),
         }
     }
@@ -203,10 +203,10 @@ mod white_cards {
         .unwrap()
     }
 
-    fn count_roles_mission_checker(role: &'static CourtierRole) -> Rc<dyn Fn(&Game) -> bool> {
-        fn inner(game: &Game, role: &'static CourtierRole) -> bool {
-            count_role_across_families(&game.get_current_player().domain, role)
-                .cmp(&get_min_for(role))
+    fn count_roles_mission_checker(role: CourtierRole) -> Rc<dyn Fn(&Game) -> bool> {
+        fn inner(game: &Game, role: CourtierRole) -> bool {
+            count_role_across_families(&game.get_current_player().domain, &role)
+                .cmp(&get_min_for(&role))
                 .is_ge()
         }
         Rc::new(move |game: &Game| inner(game, role))
