@@ -182,7 +182,7 @@ mod white_cards {
         Vec::from(piles.as_array())
             .into_iter()
             .flatten()
-            .filter(|card| &card.role == role)
+            .filter(|pile_role| **pile_role == *role)
             .count()
             .try_into()
             .unwrap()
@@ -288,6 +288,4 @@ mod blue_cards {
         }
         false
     }
-
-    // TODO: implement the actual missions checks functions
 }

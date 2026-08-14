@@ -6,11 +6,13 @@ use crate::courtier_card::CourtierFamily;
 use crate::courtier_card::CourtierFamily::{Carp, Hare, Moth, Nightingale, Stag, Toad};
 use crate::piles::{GetFamily, Piles};
 
-pub type Result<T> = std::result::Result<T, Error>;
+type Result<T> = std::result::Result<T, Error>;
+
 #[derive(Debug)]
 enum Error {
     FamilyStatusError { number: i8 },
 }
+
 pub enum FamilyStatus {
     InTheLight,
     Neutral,

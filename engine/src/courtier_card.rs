@@ -40,7 +40,7 @@ impl CourtierFamily {
     }
 }
 
-// TODO delete that impl Display
+// TODO delete that impl Display??
 impl fmt::Display for CourtierFamily {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
@@ -63,7 +63,7 @@ impl fmt::Display for CourtierRole {
 }
 
 impl CourtierRole {
-    // TODO impl Iterator<Item = CourtierRole>
+    // TODO impl Iterator<Item = CourtierRole> (not yet necessary)
     pub fn special_roles_iter() -> std::slice::Iter<'static, CourtierRole> {
         [Self::Noble, Self::Spy, Self::Assassin, Self::Guard].iter()
     }

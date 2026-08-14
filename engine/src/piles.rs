@@ -2,12 +2,11 @@
 use std::iter::zip;
 
 use crate::courtier_card::CourtierFamily::{Carp, Hare, Moth, Nightingale, Stag, Toad};
-use crate::courtier_card::CourtierRole::{Assassin, Guard, Noble, Spy};
+use crate::courtier_card::CourtierRole::{self, Assassin, Guard, Noble, Spy};
 use crate::courtier_card::Error::{self, TryToKillGuard};
 use crate::courtier_card::{CourtierCard, CourtierFamily};
 
-type Pile = Vec<CourtierCard>;
-// TODO type Pile<T> = Vec<T>;
+type Pile<T> = Vec<T>;
 
 macro_rules! impl_get_family {
     ($ty:ty, $field_ty:ty) => {
@@ -69,13 +68,13 @@ impl_get_family!(PilesScores, u8);
 pub struct Piles {
     // TODO
     // families: HashMap<Family, Vec[NonSpyRole]>
-    pub moths: Pile,
-    pub toads: Pile,
-    pub nightingales: Pile,
-    pub hares: Pile,
-    pub stags: Pile,
-    pub carps: Pile,
-    pub spies: Pile,
+    pub moths: Pile<CourtierRole>,
+    pub toads: Pile<CourtierRole>,
+    pub nightingales: Pile<CourtierRole>,
+    pub hares: Pile<CourtierRole>,
+    pub stags: Pile<CourtierRole>,
+    pub carps: Pile<CourtierRole>,
+    pub spies: Pile<CourtierFamily>,
 }
 
 impl Piles {
@@ -92,15 +91,15 @@ impl Piles {
     }
     pub fn add(&mut self, card: CourtierCard) {
         if card.role == Spy {
-            self.spies.push(card);
+            self.spies.push(card.family);
         } else {
             match card.family {
-                Moth => self.moths.push(card), // TODO .push(card.role)
-                Toad => self.toads.push(card),
-                Nightingale => self.nightingales.push(card),
-                Hare => self.hares.push(card),
-                Stag => self.stags.push(card),
-                Carp => self.carps.push(card),
+                Moth => self.moths.push(card.role),
+                Toad => self.toads.push(card.role),
+                Nightingale => self.nightingales.push(card.role),
+                Hare => self.hares.push(card.role),
+                Stag => self.stags.push(card.role),
+                Carp => self.carps.push(card.role),
             }
         }
     }
@@ -123,60 +122,63 @@ impl Piles {
                 Moth => self.moths.remove(
                     self.moths
                         .iter()
-                        .position(|pile_card| pile_card.role == card.role)
+                        .position(|role| *role == card.role)
                         .unwrap(),
                 ),
                 Toad => self.toads.remove(
                     self.toads
                         .iter()
-                        .position(|pile_card| pile_card.role == card.role)
+                        .position(|role| *role == card.role)
                         .unwrap(),
                 ),
                 Nightingale => self.nightingales.remove(
                     self.nightingales
                         .iter()
-                        .position(|pile_card| pile_card.role == card.role)
+                        .position(|role| *role == card.role)
                         .unwrap(),
                 ),
                 Hare => self.hares.remove(
                     self.hares
                         .iter()
-                        .position(|pile_card| pile_card.role == card.role)
+                        .position(|role| *role == card.role)
                         .unwrap(),
                 ),
                 Stag => self.stags.remove(
                     self.moths
                         .iter()
-                        .position(|pile_card| pile_card.role == card.role)
+                        .position(|role| *role == card.role)
                         .unwrap(),
                 ),
                 Carp => self.carps.remove(
                     self.carps
                         .iter()
-                        .position(|pile_card| pile_card.role == card.role)
+                        .position(|role| *role == card.role)
                         .unwrap(),
                 ),
             };
             Ok(())
         }
     }
-
-    pub fn unpack_spies(&mut self) {
-        for _ in 0..self.spies.len() {
-            let spy = self.spies.pop().unwrap();
-            match spy.family {
-                Moth => self.moths.push(spy),
-                Toad => self.toads.push(spy),
-                Nightingale => self.nightingales.push(spy),
-                Hare => self.hares.push(spy),
-                Stag => self.stags.push(spy),
-                Carp => self.carps.push(spy),
-            }
+    fn add_role_to_family(&mut self, role: CourtierRole, family: CourtierFamily) {
+        match family {
+            Moth => self.moths.push(role),
+            Toad => self.toads.push(role),
+            Nightingale => self.nightingales.push(role),
+            Hare => self.hares.push(role),
+            Stag => self.stags.push(role),
+            Carp => self.carps.push(role),
         }
     }
 
-    pub fn as_array(&self) -> [&Vec<CourtierCard>; 6] {
-        // does not return the spies attribute
+    pub fn unpack_spies(&mut self) {
+        for _ in 0..self.spies.len() {
+            let spy_family = self.spies.pop().unwrap();
+            self.add_role_to_family(Spy, spy_family);
+        }
+    }
+
+    pub fn as_array(&self) -> [&Vec<CourtierRole>; 6] {
+        //! does not return the spies attribute
         [
             &self.moths,
             &self.toads,
@@ -192,8 +194,8 @@ impl Piles {
         let piles = self.as_array();
 
         for (cards, mut score) in zip(piles, scores) {
-            for card in cards {
-                match card.role {
+            for role in cards {
+                match role {
                     Noble => score += 2,
                     _ => score += 1,
                 }
@@ -204,4 +206,4 @@ impl Piles {
     }
 }
 
-impl_get_family!(Piles, Pile);
+impl_get_family!(Piles, Pile<CourtierRole>);
