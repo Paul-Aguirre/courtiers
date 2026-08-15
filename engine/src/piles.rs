@@ -29,7 +29,7 @@ pub trait GetFamily<T> {
     fn get_family(&self, family: CourtierFamily) -> &T;
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PilesScores {
     moths: u8,
     toads: u8,
@@ -65,6 +65,7 @@ impl PilesScores {
 
 impl_get_family!(PilesScores, u8);
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct Piles {
     // TODO
     // families: HashMap<Family, Vec[NonSpyRole]>
@@ -202,3 +203,160 @@ impl Piles {
 }
 
 impl_get_family!(Piles, Pile<CourtierRole>);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_piles_scores_from_array() {
+        let scores_array: [u8; 6] = [1, 2, 3, 4, 5, 6];
+        let scores_piles = PilesScores::from_array(scores_array);
+        assert_eq!(
+            scores_piles,
+            PilesScores {
+                moths: 1,
+                toads: 2,
+                nightingales: 3,
+                hares: 4,
+                stags: 5,
+                carps: 6
+            }
+        )
+    }
+
+    #[test]
+    fn test_piles_scores_as_array() {
+        let scores_piles = PilesScores {
+            moths: 1,
+            toads: 2,
+            nightingales: 3,
+            hares: 4,
+            stags: 5,
+            carps: 6,
+        };
+        let scores_array: [u8; 6] = [1, 2, 3, 4, 5, 6];
+        assert_eq!(scores_piles.as_array(), scores_array)
+    }
+
+    #[test]
+    fn test_piles_scores_get_family() {
+        let scores_piles = PilesScores {
+            moths: 1,
+            toads: 2,
+            nightingales: 3,
+            hares: 4,
+            stags: 5,
+            carps: 6,
+        };
+        for (i, family) in zip((1..=6), CourtierFamily::families_iter()) {
+            assert_eq!(*scores_piles.get_family(family), i)
+        }
+    }
+
+    #[test]
+    fn test_piles_add_role_to_family() {
+        let mut piles = Piles::new();
+        piles.add_role_to_family(CourtierRole::NoRole, CourtierFamily::Moth);
+        piles.add_role_to_family(CourtierRole::Noble, CourtierFamily::Carp);
+        piles.add_role_to_family(CourtierRole::Guard, CourtierFamily::Stag);
+
+        assert_eq!(
+            piles,
+            Piles {
+                moths: vec![CourtierRole::NoRole],
+                toads: Vec::new(),
+                nightingales: Vec::new(),
+                hares: Vec::new(),
+                stags: vec![CourtierRole::Guard],
+                carps: vec![CourtierRole::Noble],
+                spies: Vec::new(),
+            }
+        )
+    }
+
+    #[test]
+    fn test_piles_add_spy() {
+        let mut piles = Piles::new();
+        piles.add(CourtierCard {
+            family: CourtierFamily::Nightingale,
+            role: CourtierRole::Spy,
+        });
+        piles.add(CourtierCard {
+            family: CourtierFamily::Toad,
+            role: CourtierRole::Spy,
+        });
+
+        assert_eq!(
+            piles,
+            Piles {
+                moths: Vec::new(),
+                toads: Vec::new(),
+                nightingales: Vec::new(),
+                hares: Vec::new(),
+                stags: Vec::new(),
+                carps: Vec::new(),
+                spies: vec![CourtierFamily::Nightingale, CourtierFamily::Toad],
+            }
+        )
+    }
+
+    #[test]
+    fn test_piles_add_no_spy_role() {
+        let mut piles = Piles::new();
+        piles.add(CourtierCard {
+            family: CourtierFamily::Nightingale,
+            role: CourtierRole::Guard,
+        });
+        piles.add(CourtierCard {
+            family: CourtierFamily::Toad,
+            role: CourtierRole::Assassin,
+        });
+        piles.add(CourtierCard {
+            family: CourtierFamily::Toad,
+            role: CourtierRole::NoRole,
+        });
+        piles.add(CourtierCard {
+            family: CourtierFamily::Hare,
+            role: CourtierRole::Noble,
+        });
+        assert_eq!(
+            piles,
+            Piles {
+                moths: Vec::new(),
+                toads: vec![CourtierRole::Assassin, CourtierRole::NoRole],
+                nightingales: vec![CourtierRole::Guard],
+                hares: vec![CourtierRole::Noble],
+                stags: Vec::new(),
+                carps: Vec::new(),
+                spies: Vec::new(),
+            }
+        )
+    }
+
+    #[test]
+    #[ignore = "Not yet implemented"]
+    fn test_piles_remove() {
+        todo!()
+    }
+
+    #[test]
+    fn test_piles_unpack_spies() {
+        todo!()
+    }
+
+    #[test]
+    fn test_piles_as_array() {
+        todo!()
+    }
+
+    #[test]
+    fn test_piles_tally() {
+        todo!()
+    }
+
+    #[test]
+    fn test_piles_get_family() {
+        todo!()
+    }
+}
