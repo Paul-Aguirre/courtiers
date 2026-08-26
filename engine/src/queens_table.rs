@@ -4,7 +4,7 @@ use std::iter::zip;
 
 use crate::courtier_card::CourtierFamily;
 use crate::courtier_card::CourtierFamily::{Carp, Hare, Moth, Nightingale, Stag, Toad};
-use crate::piles::{GetFamily, Piles};
+use crate::piles::{GetFamily, HiddenSpiesPiles, RevealedSpiesPiles};
 
 type Result<T> = std::result::Result<T, Error>;
 
@@ -73,34 +73,42 @@ impl FamiliesStatuses {
 
 impl_get_family!(FamiliesStatuses, FamilyStatus);
 
-pub struct QueensTable {
-    in_the_light: Piles,
-    disgraced: Piles,
-    statuses: Option<FamiliesStatuses>,
+pub struct ActiveQueensTable {
+    in_the_light: HiddenSpiesPiles,
+    disgraced: HiddenSpiesPiles,
 }
 
-impl QueensTable {
-    pub fn new() -> QueensTable {
-        QueensTable {
-            in_the_light: Piles::new(),
-            disgraced: Piles::new(),
-            statuses: None,
+pub struct GameEndedQueensTable {
+    in_the_light: RevealedSpiesPiles,
+    disgraced: RevealedSpiesPiles,
+}
+
+impl ActiveQueensTable {
+    pub fn new() -> ActiveQueensTable {
+        ActiveQueensTable {
+            in_the_light: HiddenSpiesPiles::new(),
+            disgraced: HiddenSpiesPiles::new(),
         }
     }
 
-    pub fn get_in_the_light(&self) -> &Piles {
+    pub fn in_the_light(&self) -> &HiddenSpiesPiles {
         &self.in_the_light
     }
 
-    pub fn get_disgraced(&self) -> &Piles {
+    pub fn disgraced(&self) -> &HiddenSpiesPiles {
         &self.disgraced
     }
 
-    pub fn get_statuses(&self) -> &Option<FamiliesStatuses> {
-        &self.statuses
+    pub fn end_game(self) -> GameEndedQueensTable {
+        GameEndedQueensTable {
+            in_the_light: self.in_the_light.reveal_spies(),
+            disgraced: self.disgraced.reveal_spies(),
+        }
     }
+}
 
-    pub fn determine_family_statuses(&mut self) {
+impl GameEndedQueensTable {
+    pub fn determine_family_statuses(&self) -> FamiliesStatuses {
         let mut statuses_array: [i8; 6] = [0; 6];
         for (i, (in_the_light_score, disgraced_score)) in zip(
             self.in_the_light.tally().as_array(),
@@ -114,6 +122,14 @@ impl QueensTable {
                 Ordering::Less => FamilyStatus::Disgraced.value(),
             };
         }
-        self.statuses = Some(FamiliesStatuses::from_array(statuses_array).unwrap());
+        FamiliesStatuses::from_array(statuses_array).unwrap()
+    }
+
+    pub fn in_the_light(&self) -> &RevealedSpiesPiles {
+        &self.in_the_light
+    }
+
+    pub fn disgraced(&self) -> &RevealedSpiesPiles {
+        &self.disgraced
     }
 }

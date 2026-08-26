@@ -6,7 +6,7 @@ use rand::seq::SliceRandom;
 
 use crate::{
     courtier_card::{CourtierFamily, CourtierRole},
-    game::Game,
+    game::EndedGame,
     mission_card::{
         blue_cards::{build_check_disgraced_card, count_all_piles, count_any_piles, count_status},
         white_cards::{build_cmp_neighbor_card, build_count_role_card},
@@ -23,7 +23,7 @@ enum MissionCardColor {
 pub struct MissionCard {
     color: MissionCardColor,
     text: String,
-    mission_checker: Rc<dyn Fn(&Game) -> bool>,
+    mission_checker: Rc<dyn Fn(&EndedGame, i8) -> bool>,
 }
 
 // Manual Clone implementation for MissionCard
@@ -38,7 +38,7 @@ impl Clone for MissionCard {
 }
 
 impl MissionCard {
-    pub fn get_mission_checker(&self) -> &Rc<dyn Fn(&Game) -> bool> {
+    pub fn get_mission_checker(&self) -> &Rc<dyn Fn(&EndedGame, i8) -> bool> {
         &self.mission_checker
     }
     pub fn build_white_deck() -> Vec<MissionCard> {
@@ -70,38 +70,32 @@ impl MissionCard {
         let count_status_most_card = MissionCard {
             color: MissionCardColor::Blue,
             text: String::from("At most 3 families must be in the light at the court."),
-            mission_checker: Rc::new(|game: &Game| {
-                count_status(
-                    game.get_queens_table().get_statuses().as_ref().unwrap(),
-                    FamilyStatus::Disgraced,
-                ) <= 3
+            mission_checker: Rc::new(|game: &EndedGame, _: i8| {
+                count_status(game.statuses(), FamilyStatus::Disgraced) <= 3
             }),
         };
 
         let count_status_least_card = MissionCard {
             color: MissionCardColor::Blue,
             text: String::from("At least 2 families must be disgraced at the court."),
-            mission_checker: Rc::new(|game: &Game| {
-                count_status(
-                    game.get_queens_table().get_statuses().as_ref().unwrap(),
-                    FamilyStatus::Disgraced,
-                ) >= 2
+            mission_checker: Rc::new(|game: &EndedGame, _: i8| {
+                count_status(game.statuses(), FamilyStatus::Disgraced) >= 2
             }),
         };
 
         let count_all_piles_card = MissionCard {
             color: MissionCardColor::Blue,
             text: String::from("At least 1 card of each family must be under the play mat."),
-            mission_checker: Rc::new(|game: &Game| {
-                count_all_piles(&game.get_queens_table().get_disgraced().tally(), 1)
+            mission_checker: Rc::new(|game: &EndedGame, _: i8| {
+                count_all_piles(&game.queens_table().disgraced().tally(), 1)
             }),
         };
 
         let count_any_piles_card = MissionCard {
             color: MissionCardColor::Blue,
             text: String::from("One family must have at least 5 cards under the play mat."),
-            mission_checker: Rc::new(|game: &Game| {
-                count_any_piles(&game.get_queens_table().get_disgraced().tally(), 5)
+            mission_checker: Rc::new(|game: &EndedGame, _: i8| {
+                count_any_piles(&game.queens_table().disgraced().tally(), 5)
             }),
         };
 
@@ -128,9 +122,9 @@ mod white_cards {
 
     use crate::{
         courtier_card::{CourtierFamily, CourtierRole},
-        game::Game,
+        game::EndedGame,
         mission_card::{MissionCard, MissionCardColor},
-        piles::{GetFamily, Piles, PilesScores},
+        piles::{GetFamily, PilesScores, RevealedSpiesPiles},
     };
 
     // ################################################################
@@ -144,17 +138,40 @@ mod white_cards {
         }
     }
 
-    fn cmp_neighbor_mission_checker(family: CourtierFamily) -> Rc<dyn Fn(&Game) -> bool> {
-        fn inner(game: &Game, family: CourtierFamily) -> bool {
+    fn cmp_neighbor_mission_checker(family: CourtierFamily) -> Rc<dyn Fn(&EndedGame, i8) -> bool> {
+        fn inner(game: &EndedGame, family: CourtierFamily, current_player_index: i8) -> bool {
+            let next_player_index = match current_player_index
+                .cmp(&((game.players().len() - 1) as i8))
+            {
+                Ordering::Equal => 0i8,
+                Ordering::Less => current_player_index + 1,
+                Ordering::Greater => {
+                    panic!(
+                        "Current number player index ({}) should not be greater than max player index ({})",
+                        current_player_index,
+                        game.players().len() - 1
+                    )
+                }
+            };
             cmp_neighbor(
-                game.get_current_player().domain_scores.clone().unwrap(),
-                game.get_next_player().domain_scores.clone().unwrap(),
+                game.players()
+                    .get(current_player_index as usize)
+                    .unwrap()
+                    .domain
+                    .tally(),
+                game.players()
+                    .get(next_player_index as usize)
+                    .unwrap()
+                    .domain
+                    .tally(),
                 family,
             )
             .is_ge()
         }
         // Use a wrapper function to match the expected fn(Game) -> bool signature
-        Rc::new(move |game: &Game| inner(game, family))
+        Rc::new(move |game: &EndedGame, current_player_index: i8| {
+            inner(game, family, current_player_index)
+        })
     }
 
     fn cmp_neighbor(left: PilesScores, right: PilesScores, family: CourtierFamily) -> Ordering {
@@ -177,7 +194,7 @@ mod white_cards {
         }
     }
 
-    fn count_role_across_families(piles: &Piles, role: &CourtierRole) -> u8 {
+    fn count_role_across_families(piles: &RevealedSpiesPiles, role: &CourtierRole) -> u8 {
         // counts the number of cards with role across all the cards in a Piles instance
         Vec::from(piles.as_array())
             .into_iter()
@@ -203,13 +220,22 @@ mod white_cards {
         .unwrap()
     }
 
-    fn count_roles_mission_checker(role: CourtierRole) -> Rc<dyn Fn(&Game) -> bool> {
-        fn inner(game: &Game, role: CourtierRole) -> bool {
-            count_role_across_families(&game.get_current_player().domain, &role)
-                .cmp(&get_min_for(&role))
-                .is_ge()
+    fn count_roles_mission_checker(role: CourtierRole) -> Rc<dyn Fn(&EndedGame, i8) -> bool> {
+        fn inner(game: &EndedGame, role: CourtierRole, current_player_index: i8) -> bool {
+            count_role_across_families(
+                &game
+                    .players()
+                    .get(current_player_index as usize)
+                    .unwrap()
+                    .domain,
+                &role,
+            )
+            .cmp(&get_min_for(&role))
+            .is_ge()
         }
-        Rc::new(move |game: &Game| inner(game, role))
+        Rc::new(move |game: &EndedGame, current_player_index: i8| {
+            inner(game, role, current_player_index)
+        })
     }
 }
 
@@ -218,7 +244,7 @@ mod blue_cards {
 
     use crate::{
         courtier_card::CourtierFamily,
-        game::{self, Game},
+        game::{self, EndedGame},
         mission_card::MissionCard,
         piles::{GetFamily, PilesScores},
         queens_table::{FamiliesStatuses, FamilyStatus},
@@ -231,11 +257,8 @@ mod blue_cards {
         MissionCard {
             color: super::MissionCardColor::Blue,
             text: build_check_disgraced_card_text(&family),
-            mission_checker: Rc::new(move |game: &Game| {
-                check_disgraced(
-                    game.get_queens_table().get_statuses().as_ref().unwrap(),
-                    family,
-                )
+            mission_checker: Rc::new(move |game: &EndedGame, _: i8| {
+                check_disgraced(game.statuses(), family)
             }),
         }
     }

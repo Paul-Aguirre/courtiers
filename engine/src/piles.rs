@@ -8,6 +8,10 @@ use crate::courtier_card::{CourtierCard, CourtierFamily};
 
 type Pile<T> = Vec<T>;
 
+pub trait GetFamily<T> {
+    fn get_family(&self, family: CourtierFamily) -> &T;
+}
+
 macro_rules! impl_get_family {
     ($ty:ty, $field_ty:ty) => {
         impl GetFamily<$field_ty> for $ty {
@@ -25,8 +29,25 @@ macro_rules! impl_get_family {
     };
 }
 
-pub trait GetFamily<T> {
-    fn get_family(&self, family: CourtierFamily) -> &T;
+pub trait AddRoleToFamily {
+    fn add_role_to_family(&mut self, role: CourtierRole, family: CourtierFamily);
+}
+
+macro_rules! impl_add_role_to_family {
+    ($ty:ty) => {
+        impl AddRoleToFamily for $ty {
+            fn add_role_to_family(&mut self, role: CourtierRole, family: CourtierFamily) {
+                match family {
+                    Moth => self.moths.push(role),
+                    Toad => self.toads.push(role),
+                    Nightingale => self.nightingales.push(role),
+                    Hare => self.hares.push(role),
+                    Stag => self.stags.push(role),
+                    Carp => self.carps.push(role),
+                }
+            }
+        }
+    };
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -66,7 +87,7 @@ impl PilesScores {
 impl_get_family!(PilesScores, u8);
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Piles {
+pub struct HiddenSpiesPiles {
     // TODO
     // families: HashMap<Family, Vec[NonSpyRole]>
     pub moths: Pile<CourtierRole>,
@@ -78,9 +99,24 @@ pub struct Piles {
     pub spies: Pile<CourtierFamily>,
 }
 
-impl Piles {
-    pub fn new() -> Piles {
-        Piles {
+impl_add_role_to_family!(HiddenSpiesPiles);
+impl_get_family!(HiddenSpiesPiles, Pile<CourtierRole>);
+
+#[derive(Debug)]
+pub struct RevealedSpiesPiles {
+    pub moths: Pile<CourtierRole>,
+    pub toads: Pile<CourtierRole>,
+    pub nightingales: Pile<CourtierRole>,
+    pub hares: Pile<CourtierRole>,
+    pub stags: Pile<CourtierRole>,
+    pub carps: Pile<CourtierRole>,
+}
+
+impl_add_role_to_family!(RevealedSpiesPiles);
+
+impl HiddenSpiesPiles {
+    pub fn new() -> HiddenSpiesPiles {
+        HiddenSpiesPiles {
             moths: Vec::new(),
             toads: Vec::new(),
             nightingales: Vec::new(),
@@ -88,17 +124,6 @@ impl Piles {
             stags: Vec::new(),
             carps: Vec::new(),
             spies: Vec::new(),
-        }
-    }
-
-    fn add_role_to_family(&mut self, role: CourtierRole, family: CourtierFamily) {
-        match family {
-            Moth => self.moths.push(role),
-            Toad => self.toads.push(role),
-            Nightingale => self.nightingales.push(role),
-            Hare => self.hares.push(role),
-            Stag => self.stags.push(role),
-            Carp => self.carps.push(role),
         }
     }
 
@@ -166,15 +191,28 @@ impl Piles {
         }
     }
 
-    pub fn unpack_spies(&mut self) {
+    pub fn reveal_spies(mut self) -> RevealedSpiesPiles {
+        let mut unpacked_spies_piles = RevealedSpiesPiles::new();
         for _ in 0..self.spies.len() {
-            let spy_family = self.spies.pop().unwrap();
-            self.add_role_to_family(Spy, spy_family);
+            unpacked_spies_piles.add_role_to_family(Spy, self.spies.pop().unwrap());
+        }
+        unpacked_spies_piles
+    }
+}
+
+impl RevealedSpiesPiles {
+    fn new() -> Self {
+        RevealedSpiesPiles {
+            moths: Vec::new(),
+            toads: Vec::new(),
+            nightingales: Vec::new(),
+            hares: Vec::new(),
+            stags: Vec::new(),
+            carps: Vec::new(),
         }
     }
 
     pub fn as_array(&self) -> [&Vec<CourtierRole>; 6] {
-        //! does not return the spies attribute
         [
             &self.moths,
             &self.toads,
@@ -201,8 +239,6 @@ impl Piles {
         PilesScores::from_array(scores)
     }
 }
-
-impl_get_family!(Piles, Pile<CourtierRole>);
 
 #[cfg(test)]
 mod tests {
@@ -249,22 +285,23 @@ mod tests {
             stags: 5,
             carps: 6,
         };
-        for (i, family) in zip((1..=6), CourtierFamily::families_iter()) {
+        for (i, family) in zip(1..=6, CourtierFamily::families_iter()) {
             assert_eq!(*scores_piles.get_family(family), i)
         }
     }
 
     #[test]
     fn test_piles_add_role_to_family() {
-        let mut piles = Piles::new();
+        let mut piles = HiddenSpiesPiles::new();
         piles.add_role_to_family(CourtierRole::NoRole, CourtierFamily::Moth);
+        piles.add_role_to_family(CourtierRole::Assassin, CourtierFamily::Moth);
         piles.add_role_to_family(CourtierRole::Noble, CourtierFamily::Carp);
         piles.add_role_to_family(CourtierRole::Guard, CourtierFamily::Stag);
 
         assert_eq!(
             piles,
-            Piles {
-                moths: vec![CourtierRole::NoRole],
+            HiddenSpiesPiles {
+                moths: vec![CourtierRole::NoRole, CourtierRole::Assassin],
                 toads: Vec::new(),
                 nightingales: Vec::new(),
                 hares: Vec::new(),
@@ -277,7 +314,7 @@ mod tests {
 
     #[test]
     fn test_piles_add_spy() {
-        let mut piles = Piles::new();
+        let mut piles = HiddenSpiesPiles::new();
         piles.add(CourtierCard {
             family: CourtierFamily::Nightingale,
             role: CourtierRole::Spy,
@@ -289,7 +326,7 @@ mod tests {
 
         assert_eq!(
             piles,
-            Piles {
+            HiddenSpiesPiles {
                 moths: Vec::new(),
                 toads: Vec::new(),
                 nightingales: Vec::new(),
@@ -303,7 +340,7 @@ mod tests {
 
     #[test]
     fn test_piles_add_no_spy_role() {
-        let mut piles = Piles::new();
+        let mut piles = HiddenSpiesPiles::new();
         piles.add(CourtierCard {
             family: CourtierFamily::Nightingale,
             role: CourtierRole::Guard,
@@ -322,7 +359,7 @@ mod tests {
         });
         assert_eq!(
             piles,
-            Piles {
+            HiddenSpiesPiles {
                 moths: Vec::new(),
                 toads: vec![CourtierRole::Assassin, CourtierRole::NoRole],
                 nightingales: vec![CourtierRole::Guard],
@@ -341,7 +378,7 @@ mod tests {
     }
 
     #[test]
-    fn test_piles_unpack_spies() {
+    fn test_piles_reveal_spies() {
         todo!()
     }
 
