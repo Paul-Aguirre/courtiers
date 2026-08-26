@@ -90,13 +90,13 @@ impl_get_family!(PilesScores, u8);
 pub struct HiddenSpiesPiles {
     // TODO
     // families: HashMap<Family, Vec[NonSpyRole]>
-    pub moths: Pile<CourtierRole>,
-    pub toads: Pile<CourtierRole>,
-    pub nightingales: Pile<CourtierRole>,
-    pub hares: Pile<CourtierRole>,
-    pub stags: Pile<CourtierRole>,
-    pub carps: Pile<CourtierRole>,
-    pub spies: Pile<CourtierFamily>,
+    moths: Pile<CourtierRole>,
+    toads: Pile<CourtierRole>,
+    nightingales: Pile<CourtierRole>,
+    hares: Pile<CourtierRole>,
+    stags: Pile<CourtierRole>,
+    carps: Pile<CourtierRole>,
+    spies: Pile<CourtierFamily>,
 }
 
 impl_add_role_to_family!(HiddenSpiesPiles);
@@ -104,12 +104,12 @@ impl_get_family!(HiddenSpiesPiles, Pile<CourtierRole>);
 
 #[derive(Debug)]
 pub struct RevealedSpiesPiles {
-    pub moths: Pile<CourtierRole>,
-    pub toads: Pile<CourtierRole>,
-    pub nightingales: Pile<CourtierRole>,
-    pub hares: Pile<CourtierRole>,
-    pub stags: Pile<CourtierRole>,
-    pub carps: Pile<CourtierRole>,
+    moths: Pile<CourtierRole>,
+    toads: Pile<CourtierRole>,
+    nightingales: Pile<CourtierRole>,
+    hares: Pile<CourtierRole>,
+    stags: Pile<CourtierRole>,
+    carps: Pile<CourtierRole>,
 }
 
 impl_add_role_to_family!(RevealedSpiesPiles);
