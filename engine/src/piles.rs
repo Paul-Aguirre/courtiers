@@ -2,7 +2,7 @@
 use std::iter::zip;
 
 use crate::courtier_card::CourtierFamily::{Carp, Hare, Moth, Nightingale, Stag, Toad};
-use crate::courtier_card::CourtierRole::{self, Assassin, Guard, Noble, Spy};
+use crate::courtier_card::CourtierRole::{self, Assassin, Guard, NoRole, Noble, Spy};
 use crate::courtier_card::Error::{self, TryToKillGuard};
 use crate::courtier_card::{CourtierCard, CourtierFamily};
 
@@ -136,58 +136,53 @@ impl HiddenSpiesPiles {
     }
 
     pub fn remove(&mut self, card: CourtierCard) -> Result<(), Error> {
-        // TODO
-        // match card.role {
-        // Guard =>
-        // Spy =>
-        // Assassin | NoRole | Noble =>
-        //}
-        if card.role == Guard {
-            Err(TryToKillGuard)
-        } else if card.role == Spy {
-            todo!();
-            // has to deal with a specific card (@ specific index in the pile)
-            Ok(())
-        } else {
-            match card.family {
-                Moth => self.moths.remove(
-                    self.moths
-                        .iter()
-                        .position(|role| *role == card.role)
-                        .unwrap(),
-                ),
-                Toad => self.toads.remove(
-                    self.toads
-                        .iter()
-                        .position(|role| *role == card.role)
-                        .unwrap(),
-                ),
-                Nightingale => self.nightingales.remove(
-                    self.nightingales
-                        .iter()
-                        .position(|role| *role == card.role)
-                        .unwrap(),
-                ),
-                Hare => self.hares.remove(
-                    self.hares
-                        .iter()
-                        .position(|role| *role == card.role)
-                        .unwrap(),
-                ),
-                Stag => self.stags.remove(
-                    self.moths
-                        .iter()
-                        .position(|role| *role == card.role)
-                        .unwrap(),
-                ),
-                Carp => self.carps.remove(
-                    self.carps
-                        .iter()
-                        .position(|role| *role == card.role)
-                        .unwrap(),
-                ),
-            };
-            Ok(())
+        match card.role {
+            Guard => Err(TryToKillGuard),
+            Spy => {
+                // TODO
+                todo!();
+            } // has to deal with a specific card (@ specific index in the pile)
+            Assassin | NoRole | Noble => {
+                match card.family {
+                    Moth => self.moths.remove(
+                        self.moths
+                            .iter()
+                            .position(|role| *role == card.role)
+                            .unwrap(),
+                    ),
+                    Toad => self.toads.remove(
+                        self.toads
+                            .iter()
+                            .position(|role| *role == card.role)
+                            .unwrap(),
+                    ),
+                    Nightingale => self.nightingales.remove(
+                        self.nightingales
+                            .iter()
+                            .position(|role| *role == card.role)
+                            .unwrap(),
+                    ),
+                    Hare => self.hares.remove(
+                        self.hares
+                            .iter()
+                            .position(|role| *role == card.role)
+                            .unwrap(),
+                    ),
+                    Stag => self.stags.remove(
+                        self.moths
+                            .iter()
+                            .position(|role| *role == card.role)
+                            .unwrap(),
+                    ),
+                    Carp => self.carps.remove(
+                        self.carps
+                            .iter()
+                            .position(|role| *role == card.role)
+                            .unwrap(),
+                    ),
+                };
+                Ok(())
+            }
         }
     }
 

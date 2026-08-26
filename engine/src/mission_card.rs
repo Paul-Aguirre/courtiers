@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-use std::cmp::Ordering;
 use std::rc::Rc;
 
 use rand::seq::SliceRandom;
@@ -244,7 +243,7 @@ mod blue_cards {
 
     use crate::{
         courtier_card::CourtierFamily,
-        game::{self, EndedGame},
+        game::EndedGame,
         mission_card::MissionCard,
         piles::{GetFamily, PilesScores},
         queens_table::{FamiliesStatuses, FamilyStatus},

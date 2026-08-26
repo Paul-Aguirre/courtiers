@@ -1,9 +1,9 @@
 #![allow(dead_code)]
-use std::{cell::RefCell, iter::Cycle, ops::Range, rc::Rc};
+use std::{iter::Cycle, ops::Range};
 
 use crate::{
     courtier_card::{self, CourtierCard},
-    player::{self, ActivePlayer, GameEndedPlayer},
+    player::{ActivePlayer, GameEndedPlayer},
     queens_table::{ActiveQueensTable, FamiliesStatuses, GameEndedQueensTable},
 };
 
